@@ -1,0 +1,31 @@
+{
+  "schema": "gooo/semantic-authority-policy/v1",
+  "id": "semantic-authority-census-v1",
+  "precedence": [
+    "REFUTED",
+    "UNKNOWN",
+    "CLOSED"
+  ],
+  "unknown_fields": [
+    "stage",
+    "step",
+    "reason",
+    "unknown_class",
+    "next_operation",
+    "blocked_by"
+  ],
+  "cells": [
+    {"id":"LOAD_POLICY","proof":"FOUNDATION","indicator":"DRIVER","activity":"LoadAuthorityPolicy"},
+    {"id":"BIND_SOURCE","proof":"FOUNDATION","indicator":"DRIVER","activity":"BindGoooSource"},
+    {"id":"BIND_SEMANTIC_IR","proof":"FOUNDATION","indicator":"DRIVER","activity":"BindSemanticIR"},
+    {"id":"BIND_GENERATED_GO","proof":"FOUNDATION","indicator":"OUTCOME","activity":"BindGeneratedGo"},
+    {"id":"VERIFY_SOURCE_IR","proof":"COHERENCE","indicator":"OUTCOME","activity":"VerifySourceIRSemantics"},
+    {"id":"VERIFY_IR_GENERATED","proof":"COHERENCE","indicator":"OUTCOME","activity":"VerifyIRGeneratedSemantics"},
+    {"id":"CLASSIFY_IMPLEMENTATION_AUTHORITY","proof":"COHERENCE","indicator":"GUARDRAIL","activity":"ClassifyImplementationAuthority"},
+    {"id":"VERIFY_INPUT_FRESHNESS","proof":"COHERENCE","indicator":"DRIVER","activity":"VerifyInputFreshness"},
+    {"id":"PRESERVE_UNKNOWN_FRONTIER","proof":"REGRESSION","indicator":"GUARDRAIL","activity":"PreserveUnknownFrontier"},
+    {"id":"PRESERVE_REFUTATION","proof":"REGRESSION","indicator":"GUARDRAIL","activity":"PreserveRefutingCounterexample"},
+    {"id":"VERIFY_DETERMINISTIC_REPLAY","proof":"REGRESSION","indicator":"GUARDRAIL","activity":"VerifyDeterministicReplay"},
+    {"id":"PUBLISH_HUMAN_REPORT","proof":"REGRESSION","indicator":"OUTCOME","activity":"PublishHumanReadableReport"}
+  ]
+}

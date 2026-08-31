@@ -1,0 +1,4 @@
+// Counterexample: unknown is incorrectly promoted to a fixed point.
+// gooo-binding CLASSIFY_UNKNOWN unknown=fixed_point
+// gooo-binding PRESERVE_REFUTATION contradiction=refuted
+// gooo-binding SELECT_FRONTIER frontier=minimal

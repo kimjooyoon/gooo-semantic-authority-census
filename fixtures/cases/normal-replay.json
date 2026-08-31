@@ -1,0 +1,36 @@
+{
+  "schema": "gooo/semantic-authority-census-manifest/v1",
+  "scenario_id": "normal-replay",
+  "expected_decision": "CLOSED",
+  "freshness": "CURRENT",
+  "authority": {
+    "repository_writes": 0,
+    "local_test_executions": 0,
+    "infrastructure_mutations": 0,
+    "provider_install_attempts": 0,
+    "network_mutation_attempts": 0
+  },
+  "obligations": [
+    {
+      "id": "CLASSIFY_UNKNOWN",
+      "source_path": "../common/source.gooo",
+      "ir_path": "../common/semantic.ir.json",
+      "generated_path": "../common/generated.go.txt",
+      "implementation_kind": "GENERATED_FROM_GOOO"
+    },
+    {
+      "id": "PRESERVE_REFUTATION",
+      "source_path": "../common/source.gooo",
+      "ir_path": "../common/semantic.ir.json",
+      "generated_path": "../common/generated.go.txt",
+      "implementation_kind": "GENERATED_FROM_GOOO"
+    },
+    {
+      "id": "SELECT_FRONTIER",
+      "source_path": "../common/source.gooo",
+      "ir_path": "../common/semantic.ir.json",
+      "generated_path": "../common/generated.go.txt",
+      "implementation_kind": "GENERATED_FROM_GOOO"
+    }
+  ]
+}

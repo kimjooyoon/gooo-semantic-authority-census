@@ -1,0 +1,4 @@
+# Canonical source order.
+activity CLASSIFY_UNKNOWN unknown=fail_closed
+activity PRESERVE_REFUTATION contradiction=refuted
+activity SELECT_FRONTIER frontier=minimal

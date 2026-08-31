@@ -1,0 +1,4 @@
+// Handwritten bootstrap fixture, intentionally not generated.
+// gooo-binding CLASSIFY_UNKNOWN unknown=fail_closed
+// gooo-binding PRESERVE_REFUTATION contradiction=refuted
+// gooo-binding SELECT_FRONTIER frontier=minimal

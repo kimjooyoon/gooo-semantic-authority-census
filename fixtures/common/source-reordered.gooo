@@ -1,0 +1,4 @@
+# Comments and declaration order are non-semantic.
+activity SELECT_FRONTIER frontier=minimal
+activity CLASSIFY_UNKNOWN unknown=fail_closed
+activity PRESERVE_REFUTATION contradiction=refuted

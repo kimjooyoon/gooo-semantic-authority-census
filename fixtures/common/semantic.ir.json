@@ -1,0 +1,7 @@
+{
+  "activities": [
+    {"id":"CLASSIFY_UNKNOWN","semantic":"unknown=fail_closed"},
+    {"id":"PRESERVE_REFUTATION","semantic":"contradiction=refuted"},
+    {"id":"SELECT_FRONTIER","semantic":"frontier=minimal"}
+  ]
+}

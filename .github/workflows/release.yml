@@ -1,0 +1,56 @@
+name: Immutable semantic authority release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.27.0
+          cache: false
+      - name: Build release evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/gooo-semantic-authority-census"
+          bash scripts/conformance.sh "$out"
+
+          tag="$GITHUB_REF_NAME"
+          ref_json=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag")
+          test "$(jq -r '.object.type' <<<"$ref_json")" = "tag"
+          tag_object=$(jq -r '.object.sha' <<<"$ref_json")
+          tag_json=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_object")
+          target=$(jq -r '.object.sha' <<<"$tag_json")
+          test "$(jq -r '.object.type' <<<"$tag_json")" = "commit"
+
+          package="$RUNNER_TEMP/release"
+          mkdir -p "$package"
+          git archive --format=tar.gz --prefix="gooo-semantic-authority-census-$tag/" "$target" > "$package/source-$tag.tar.gz"
+          tar -czf "$package/evidence-$tag.tar.gz" -C "$out" .
+          jq -n             --arg tag "$tag"             --arg tag_object "$tag_object"             --arg target "$target"             --arg run_id "$GITHUB_RUN_ID"             --arg source_digest "sha256:$(sha256sum "$package/source-$tag.tar.gz" | awk '{print $1}')"             --arg evidence_digest "sha256:$(sha256sum "$package/evidence-$tag.tar.gz" | awk '{print $1}')"             '{schema:"gooo/semantic-authority-release/v1",tag:$tag,tag_object:$tag_object,target:$target,run_id:$run_id,assets:{source:$source_digest,evidence:$evidence_digest}}'             > "$package/manifest-$tag.json"
+          (cd "$package" && sha256sum "source-$tag.tar.gz" "evidence-$tag.tar.gz" "manifest-$tag.json" > SHA256SUMS)
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
+            exit 0
+          fi
+          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --verify-tag             --title "$tag semantic authority census"             --notes "Exact semantic-authority census evidence. No score and no self-hosting claim."             "$package/source-$tag.tar.gz" "$package/evidence-$tag.tar.gz" "$package/manifest-$tag.json" "$package/SHA256SUMS"
+          test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semantic-authority-release
+          path: ${{ runner.temp }}/release
+          if-no-files-found: error
