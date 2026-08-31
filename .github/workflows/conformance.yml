@@ -24,10 +24,15 @@ jobs:
         run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-semantic-authority-census"
       - name: Publish human summary
         if: always()
-        run: cat "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          if [ -f "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" ]; then
+            cat "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Conformance did not reach report generation." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: semantic-authority-census
           path: ${{ runner.temp }}/gooo-semantic-authority-census
-          if-no-files-found: error
+          if-no-files-found: warn

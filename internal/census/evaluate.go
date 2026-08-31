@@ -50,19 +50,19 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 		return Report{}, errors.New("manifest has no obligations")
 	}
 	report := Report{
-		Schema: "gooo/semantic-authority-census-report/v1",
-		ScenarioID: manifest.ScenarioID,
+		Schema:           "gooo/semantic-authority-census-report/v1",
+		ScenarioID:       manifest.ScenarioID,
 		ExpectedDecision: manifest.ExpectedDecision,
-		PolicyID: p.ID,
-		Score: "NOT_COMBINED",
-		Unknowns: []Unknown{},
-		Refutations: []Refutation{},
-		NextFrontier: []string{},
-		FileDigests: map[string]string{},
+		PolicyID:         p.ID,
+		Score:            "NOT_COMBINED",
+		Unknowns:         []Unknown{},
+		Refutations:      []Refutation{},
+		NextFrontier:     []string{},
+		FileDigests:      map[string]string{},
 		Metrics: Metrics{
-			ObligationsTotal: len(manifest.Obligations),
-			RepositoryWrites: manifest.Authority.RepositoryWrites,
-			LocalTestExecutions: manifest.Authority.LocalTestExecutions,
+			ObligationsTotal:        len(manifest.Obligations),
+			RepositoryWrites:        manifest.Authority.RepositoryWrites,
+			LocalTestExecutions:     manifest.Authority.LocalTestExecutions,
 			InfrastructureMutations: manifest.Authority.InfrastructureMutations,
 			ProviderInstallAttempts: manifest.Authority.ProviderInstallAttempts,
 			NetworkMutationAttempts: manifest.Authority.NetworkMutationAttempts,
@@ -305,13 +305,13 @@ func replayProjection(report Report) any {
 		FileDigests  map[string]string
 		Metrics      Metrics
 	}{
-		Decision: report.Decision,
-		Cells: report.Cells,
-		Unknowns: report.Unknowns,
-		Refutations: report.Refutations,
+		Decision:     report.Decision,
+		Cells:        report.Cells,
+		Unknowns:     report.Unknowns,
+		Refutations:  report.Refutations,
 		NextFrontier: report.NextFrontier,
-		FileDigests: report.FileDigests,
-		Metrics: report.Metrics,
+		FileDigests:  report.FileDigests,
+		Metrics:      report.Metrics,
 	}
 }
 

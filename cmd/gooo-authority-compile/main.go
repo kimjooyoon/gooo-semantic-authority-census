@@ -59,10 +59,10 @@ func main() {
 		fail(err)
 	}
 	summary := map[string]any{
-		"policy_id": p.ID,
-		"cells": len(p.Cells),
-		"ir_path": irPath,
-		"generated_path": goPath,
+		"policy_id":         p.ID,
+		"cells":             len(p.Cells),
+		"ir_path":           irPath,
+		"generated_path":    goPath,
 		"repository_writes": 0,
 	}
 	outBytes, _ := json.Marshal(summary)

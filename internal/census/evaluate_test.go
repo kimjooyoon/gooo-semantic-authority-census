@@ -37,10 +37,10 @@ func TestDecisionPrecedenceAndAuthority(t *testing.T) {
 				}
 			}
 			writeJSON(t, manifestPath, Manifest{
-				Schema: "gooo/semantic-authority-census-manifest/v1",
-				ScenarioID: tt.name,
+				Schema:           "gooo/semantic-authority-census-manifest/v1",
+				ScenarioID:       tt.name,
 				ExpectedDecision: tt.want,
-				Freshness: "CURRENT",
+				Freshness:        "CURRENT",
 				Obligations: []Obligation{{
 					ID: "A", SourcePath: "source.gooo", IRPath: "ir.json",
 					GeneratedPath: "generated.txt", ImplementationKind: tt.kind,
@@ -68,10 +68,10 @@ func testPolicy() Policy {
 		{ID: "VERIFY_DETERMINISTIC_REPLAY"}, {ID: "PUBLISH_HUMAN_REPORT"},
 	}
 	return Policy{
-		ID: "test",
-		Precedence: []string{"REFUTED", "UNKNOWN", "CLOSED"},
+		ID:            "test",
+		Precedence:    []string{"REFUTED", "UNKNOWN", "CLOSED"},
 		UnknownFields: []string{"stage", "step", "reason", "unknown_class", "next_operation", "blocked_by"},
-		Cells: cells,
+		Cells:         cells,
 	}
 }
 
