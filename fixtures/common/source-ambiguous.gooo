@@ -1,0 +1,4 @@
+activity CLASSIFY_UNKNOWN unknown=fail_closed
+activity CLASSIFY_UNKNOWN unknown=lower_resolution
+activity PRESERVE_REFUTATION contradiction=refuted
+activity SELECT_FRONTIER frontier=minimal

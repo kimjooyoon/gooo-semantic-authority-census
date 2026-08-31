@@ -1,0 +1,16 @@
+# Gooo semantic authority census policy v1.
+policy semantic-authority-census-v1
+precedence REFUTED UNKNOWN CLOSED
+unknown_fields stage step reason unknown_class next_operation blocked_by
+cell LOAD_POLICY FOUNDATION DRIVER LoadAuthorityPolicy
+cell BIND_SOURCE FOUNDATION DRIVER BindGoooSource
+cell BIND_SEMANTIC_IR FOUNDATION DRIVER BindSemanticIR
+cell BIND_GENERATED_GO FOUNDATION OUTCOME BindGeneratedGo
+cell VERIFY_SOURCE_IR COHERENCE OUTCOME VerifySourceIRSemantics
+cell VERIFY_IR_GENERATED COHERENCE OUTCOME VerifyIRGeneratedSemantics
+cell CLASSIFY_IMPLEMENTATION_AUTHORITY COHERENCE GUARDRAIL ClassifyImplementationAuthority
+cell VERIFY_INPUT_FRESHNESS COHERENCE DRIVER VerifyInputFreshness
+cell PRESERVE_UNKNOWN_FRONTIER REGRESSION GUARDRAIL PreserveUnknownFrontier
+cell PRESERVE_REFUTATION REGRESSION GUARDRAIL PreserveRefutingCounterexample
+cell VERIFY_DETERMINISTIC_REPLAY REGRESSION GUARDRAIL VerifyDeterministicReplay
+cell PUBLISH_HUMAN_REPORT REGRESSION OUTCOME PublishHumanReadableReport

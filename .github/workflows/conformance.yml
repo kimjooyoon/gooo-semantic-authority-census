@@ -1,0 +1,38 @@
+name: Semantic authority census
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.27.0
+          cache: false
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Run CI-only conformance
+        run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-semantic-authority-census"
+      - name: Publish human summary
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" ]; then
+            cat "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Conformance did not reach report generation." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semantic-authority-census
+          path: ${{ runner.temp }}/gooo-semantic-authority-census
+          if-no-files-found: warn
