@@ -1,0 +1,8 @@
+{
+  "schema":"gooo/self-description-boundary/input/v1",
+  "scenario_id":"refuted-authority-contradiction",
+  "expected_decision":"REFUTED",
+  "release":{"id":"gooo-released-source-v1","source_revision":"released-source-v1","source_release":"v0.1.1","toolchain":"go1.27.0","input_paths":["../inputs/released-runtime.go"]},
+  "authority":{"repository_writes":0,"local_test_executions":0,"infrastructure_mutations":0,"provider_install_attempts":0,"network_mutation_attempts":0},
+  "cells":[{"cell_id":"EVALUATOR_RULES","claimed_state":"GOOO_OWNED","method":"EXPLICIT_SEMANTIC_MARKER","evidence":[{"role":"authority","kind":"HANDWRITTEN_GO","path":"../inputs/released-runtime.go","start_line":3,"end_line":3,"marker":"boundary cell=EVALUATOR_RULES"}]}]
+}

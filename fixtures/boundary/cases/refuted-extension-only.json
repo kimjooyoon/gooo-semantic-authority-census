@@ -1,0 +1,8 @@
+{
+  "schema":"gooo/self-description-boundary/input/v1",
+  "scenario_id":"refuted-extension-only",
+  "expected_decision":"REFUTED",
+  "release":{"id":"gooo-released-source-v1","source_revision":"released-source-v1","source_release":"v0.1.1","toolchain":"go1.27.0","input_paths":["../inputs/released-source.gooo"]},
+  "authority":{"repository_writes":0,"local_test_executions":0,"infrastructure_mutations":0,"provider_install_attempts":0,"network_mutation_attempts":0},
+  "cells":[{"cell_id":"LANGUAGE_GRAMMAR","claimed_state":"GOOO_OWNED","method":"FILE_EXTENSION_ONLY","evidence":[{"role":"authority","kind":"GOOO_SOURCE","path":"../inputs/released-source.gooo","start_line":2,"end_line":2,"marker":".gooo"}]}]
+}

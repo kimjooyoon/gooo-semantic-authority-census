@@ -1,0 +1,7 @@
+{
+  "graph":"gooo://released/source/v1",
+  "cell":"SEMANTIC_IR_SCHEMA",
+  "authority":"GOOO_OWNED",
+  "semantic_role":"ir_schema",
+  "evidence_kind":"SEMANTIC_GRAPH"
+}

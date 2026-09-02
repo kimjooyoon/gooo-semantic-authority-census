@@ -1,56 +1,155 @@
-name: Immutable semantic authority release
+name: Immutable self-description boundary patch release
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
   release:
+    name: Draft-first immutable release
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
+      WORK_DIR: ${{ runner.temp }}/gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout annotated tag
+        uses: actions/checkout@v5
         with:
+          ref: ${{ github.ref }}
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+
+      - name: Set up Go 1.27
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.27.0
+          go-version: '1.27.0'
           cache: false
-      - name: Build release evidence
-        env:
-          GH_TOKEN: ${{ github.token }}
+
+      - name: Verify annotated tag and refuse version reuse
+        shell: bash
         run: |
           set -euo pipefail
-          out="$RUNNER_TEMP/gooo-semantic-authority-census"
-          bash scripts/conformance.sh "$out"
-
-          tag="$GITHUB_REF_NAME"
-          ref_json=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag")
-          test "$(jq -r '.object.type' <<<"$ref_json")" = "tag"
-          tag_object=$(jq -r '.object.sha' <<<"$ref_json")
-          tag_json=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_object")
-          target=$(jq -r '.object.sha' <<<"$tag_json")
-          test "$(jq -r '.object.type' <<<"$tag_json")" = "commit"
-
-          package="$RUNNER_TEMP/release"
-          mkdir -p "$package"
-          git archive --format=tar.gz --prefix="gooo-semantic-authority-census-$tag/" "$target" > "$package/source-$tag.tar.gz"
-          tar -czf "$package/evidence-$tag.tar.gz" -C "$out" .
-          jq -n             --arg tag "$tag"             --arg tag_object "$tag_object"             --arg target "$target"             --arg run_id "$GITHUB_RUN_ID"             --arg source_digest "sha256:$(sha256sum "$package/source-$tag.tar.gz" | awk '{print $1}')"             --arg evidence_digest "sha256:$(sha256sum "$package/evidence-$tag.tar.gz" | awk '{print $1}')"             '{schema:"gooo/semantic-authority-release/v1",tag:$tag,tag_object:$tag_object,target:$target,run_id:$run_id,assets:{source:$source_digest,evidence:$evidence_digest}}'             > "$package/manifest-$tag.json"
-          (cd "$package" && sha256sum "source-$tag.tar.gz" "evidence-$tag.tar.gz" "manifest-$tag.json" > SHA256SUMS)
-
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
-            exit 0
+          test "$(go env GOVERSION)" = "go1.27.0"
+          test "$(git cat-file -t "$TAG^{tag}")" = "tag"
+          TAG_COMMIT=$(git rev-list -n 1 "$TAG")
+          test "$TAG_COMMIT" = "$GITHUB_SHA"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists; version reuse is forbidden" >&2
+            exit 1
           fi
-          gh release create "$tag" --repo "$GITHUB_REPOSITORY" --verify-tag             --title "$tag semantic authority census"             --notes "Exact semantic-authority census evidence. No score and no self-hosting claim."             "$package/source-$tag.tar.gz" "$package/evidence-$tag.tar.gz" "$package/manifest-$tag.json" "$package/SHA256SUMS"
-          test "$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
-      - uses: actions/upload-artifact@v4
+          mkdir -p "$WORK_DIR/main-ci" "$WORK_DIR/assets"
+          echo "TAG_COMMIT=$TAG_COMMIT" >> "$GITHUB_ENV"
+
+      - name: Resolve successful main-branch boundary CI evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="$GITHUB_REPOSITORY"
+          runs=$(gh api "repos/$repo/actions/runs?event=push&branch=main&per_page=100")
+          main_run=$(jq -c --arg sha "$TAG_COMMIT" '[.workflow_runs[] | select(.name == "Gooo self-description boundary CI" and .head_sha == $sha and .status == "completed" and .conclusion == "success")] | sort_by(.id) | last' <<< "$runs")
+          test "$main_run" != null
+          main_run_id=$(jq -r '.id' <<< "$main_run")
+          artifacts=$(gh api "repos/$repo/actions/runs/$main_run_id/artifacts?per_page=100")
+          artifact=$(jq -c --arg prefix "gooo-semantic-authority-census-$TAG_COMMIT-" '[.artifacts[] | select((.name|startswith($prefix)) and .expired == false)] | sort_by(.created_at) | last' <<< "$artifacts")
+          test "$artifact" != null
+          artifact_id=$(jq -r '.id' <<< "$artifact")
+          artifact_digest=$(jq -r '.digest' <<< "$artifact")
+          test -n "$artifact_digest" && test "$artifact_digest" != "null"
+          gh api "repos/$repo/actions/artifacts/$artifact_id/zip" > "$WORK_DIR/main-ci.zip"
+          unzip -q "$WORK_DIR/main-ci.zip" -d "$WORK_DIR/main-ci"
+          evidence=$(find "$WORK_DIR/main-ci" -type f -name ci-evidence.json -print -quit)
+          test -n "$evidence"
+          jq -e --arg sha "$TAG_COMMIT" '
+            .schema == "gooo/self-description-boundary/ci-evidence/v1" and
+            .run.commit == $sha and
+            .corpus.case_count == 9 and
+            .corpus.exact_decision_counts == {CLOSED:3,UNKNOWN:3,REFUTED:3} and
+            .denominator.authority_cells == 8 and
+            .execution.replay_mismatches == 0 and
+            .authority.repository_write_authority == 0 and
+            (.incidents|length) == 0
+          ' "$evidence" >/dev/null
+          echo "MAIN_RUN_ID=$main_run_id" >> "$GITHUB_ENV"
+          echo "MAIN_ARTIFACT_ID=$artifact_id" >> "$GITHUB_ENV"
+          echo "MAIN_ARTIFACT_DIGEST=$artifact_digest" >> "$GITHUB_ENV"
+          echo "MAIN_EVIDENCE_DIR=$(dirname "$evidence")" >> "$GITHUB_ENV"
+
+      - name: Assemble immutable source and evidence assets
+        shell: bash
+        run: bash scripts/release-assets.sh "$GITHUB_WORKSPACE" "$MAIN_EVIDENCE_DIR" "$WORK_DIR/assets" "$TAG" "$TAG_COMMIT" "$MAIN_RUN_ID" "$MAIN_ARTIFACT_ID" "$MAIN_ARTIFACT_DIGEST"
+
+      - name: Create draft release exactly once
+        shell: bash
+        run: |
+          set -euo pipefail
+          response=$(gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$TAG" -f target_commitish="$TAG_COMMIT" -f name="$TAG" \
+            -f body="Immutable Gooo self-description boundary evidence for $TAG_COMMIT. Main CI run $MAIN_RUN_ID is the validation authority." \
+            -F draft=true -F prerelease=false)
+          release_id=$(jq -r '.id' <<< "$response")
+          test "$release_id" != "null" && test -n "$release_id"
+          jq -e --arg tag "$TAG" --argjson id "$release_id" '.id == $id and .tag_name == $tag and .draft == true and (.assets|length) == 0' <<< "$response" >/dev/null
+          printf '%s\n' "$release_id" > "$WORK_DIR/release-id"
+          printf '%s\n' "$response" > "$WORK_DIR/draft-release.json"
+
+      - name: Upload source, evidence, manifest, and SHA256SUMS
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_id=$(cat "$WORK_DIR/release-id")
+          for asset_path in "$WORK_DIR/assets"/*; do
+            asset=$(basename "$asset_path")
+            upload_url="https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$release_id/assets?name=$asset"
+            curl --fail --silent --show-error -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              -H 'Content-Type: application/octet-stream' \
+              --data-binary "@$asset_path" "$upload_url" > "$WORK_DIR/upload-$asset.json"
+          done
+
+      - name: Publish draft exactly once
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_id=$(cat "$WORK_DIR/release-id")
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" -F draft=false -F prerelease=false > "$WORK_DIR/published-release.json"
+
+      - name: Verify immutable release and every asset digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_id=$(cat "$WORK_DIR/release-id")
+          jq -e --arg tag "$TAG" --argjson id "$release_id" '.id == $id and .tag_name == $tag and .draft == false and ((.immutable // .isImmutable) == true)' "$WORK_DIR/published-release.json" >/dev/null
+          assets=$(gh api "repos/$GITHUB_REPOSITORY/releases/$release_id/assets?per_page=100")
+          test "$(jq 'length' <<< "$assets")" = 4
+          for asset_path in "$WORK_DIR/assets"/*; do
+            asset=$(basename "$asset_path")
+            local_size=$(wc -c < "$asset_path" | tr -d ' ')
+            local_digest="sha256:$(sha256sum "$asset_path" | awk '{print $1}')"
+            server_size=$(jq -r --arg name "$asset" '.[] | select(.name == $name) | .size' <<< "$assets")
+            server_digest=$(jq -r --arg name "$asset" '.[] | select(.name == $name) | .digest' <<< "$assets")
+            test "$server_size" = "$local_size"
+            test "$server_digest" = "$local_digest"
+            asset_id=$(jq -r --arg name "$asset" '.[] | select(.name == $name) | .id' <<< "$assets")
+            gh api -H 'Accept: application/octet-stream' "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$WORK_DIR/download-$asset"
+            test "$(sha256sum "$WORK_DIR/download-$asset" | awk '{print $1}')" = "$(sha256sum "$asset_path" | awk '{print $1}')"
+          done
+          jq -S -n \
+            --arg schema 'gooo/self-description-boundary/release-receipt/v1' \
+            --arg tag "$TAG" --arg commit "$TAG_COMMIT" --arg run "$MAIN_RUN_ID" \
+            --arg artifact "$MAIN_ARTIFACT_ID" --arg artifact_digest "$MAIN_ARTIFACT_DIGEST" \
+            --slurpfile release "$WORK_DIR/published-release.json" \
+            '{schema:$schema,tag:$tag,commit_sha:$commit,main_ci:{run_id:($run|tonumber),artifact_id:($artifact|tonumber),artifact_digest:$artifact_digest},release:($release[0]|{id,tag_name,draft,immutable,isImmutable,assets:(.assets|map({id,name,size,digest}))}),immutability:{draft_first:true,version_reuse:false},incidents:[],claims:{aggregate_score:"NOT_EMITTED",percentage:"NOT_EMITTED",self_hosting:"NOT_EMITTED",improvement:"NOT_EMITTED"}}' > "$WORK_DIR/release-receipt.json"
+
+      - name: Upload release verification receipt
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: semantic-authority-release
-          path: ${{ runner.temp }}/release
-          if-no-files-found: error
+          name: gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.WORK_DIR }}
+          if-no-files-found: warn
+          retention-days: 90
