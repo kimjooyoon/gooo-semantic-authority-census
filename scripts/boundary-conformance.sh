@@ -42,7 +42,7 @@ cmp "$OUT/compile/boundary-policy.ir.json" "$OUT/compile/boundary-policy.generat
 
 jq -S '{schema:.policy.schema,id:.policy.id,release:.policy.release,precedence:.policy.precedence,unknown_fields:.policy.unknown_fields,authority_states:.policy.authority_states,fixed_point_rule:.policy.fixed_point_rule,output_authority:.policy.output_authority,authority_cells:(.policy.authority_cells|map({id,expected_state,evidence_kind,semantic_role,activity,proof,indicator}))}' \
   "$OUT/compile/boundary-policy.ir.json" > "$OUT/compile/policy.normalized.json"
-jq -S . contracts/self-description-boundary-v1.json > "$OUT/compile/contract.normalized.json"
+jq -S '{schema:"gooo/self-description-boundary/policy/v1",id:.policy_id,release,precedence,unknown_fields,authority_states,fixed_point_rule,output_authority,authority_cells}' contracts/self-description-boundary-v1.json > "$OUT/compile/contract.normalized.json"
 cmp "$OUT/compile/policy.normalized.json" "$OUT/compile/contract.normalized.json"
 
 measure build bash -c 'go build -trimpath -o "$1" ./cmd/gooo-boundary-projector' _ "$OUT/gooo-boundary-projector"
