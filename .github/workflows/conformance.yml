@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      BOUNDARY_OUTPUT: ${{ runner.temp }}/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout subject
         uses: actions/checkout@v5
@@ -55,7 +54,9 @@ jobs:
         run: test -z "$(gofmt -l .)"
 
       - name: Prepare caller-owned output
-        run: mkdir -p "$BOUNDARY_OUTPUT"
+        run: |
+          mkdir -p "$RUNNER_TEMP/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}"
+          echo "BOUNDARY_OUTPUT=$RUNNER_TEMP/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
 
       - name: Run CI-only boundary conformance
         run: bash scripts/boundary-conformance.sh "$BOUNDARY_OUTPUT"
@@ -93,6 +94,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gooo-semantic-authority-census-${{ env.SUBJECT_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ env.BOUNDARY_OUTPUT }}
+          path: ${{ runner.temp }}/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
           retention-days: 90
