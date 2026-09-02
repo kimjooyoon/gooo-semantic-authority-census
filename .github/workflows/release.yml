@@ -15,7 +15,6 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       TAG: ${{ github.ref_name }}
-      WORK_DIR: ${{ runner.temp }}/gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout annotated tag
         uses: actions/checkout@v5
@@ -29,6 +28,14 @@ jobs:
           go-version: '1.27.0'
           cache: false
 
+      - name: Prepare release workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}"
+          mkdir -p "$work/main-ci" "$work/assets"
+          echo "WORK_DIR=$work" >> "$GITHUB_ENV"
+
       - name: Verify annotated tag and refuse version reuse
         shell: bash
         run: |
@@ -41,7 +48,6 @@ jobs:
             echo "release $TAG already exists; version reuse is forbidden" >&2
             exit 1
           fi
-          mkdir -p "$WORK_DIR/main-ci" "$WORK_DIR/assets"
           echo "TAG_COMMIT=$TAG_COMMIT" >> "$GITHUB_ENV"
 
       - name: Resolve successful main-branch boundary CI evidence
@@ -150,6 +156,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ env.WORK_DIR }}
+          path: ${{ runner.temp }}/gooo-semantic-authority-release-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 90
