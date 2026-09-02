@@ -135,7 +135,7 @@ func classifyCell(spec CellSpec, observation CellObservation, base, root string,
 		appendRefutation(report, Refutation{
 			Stage: "BOUNDARY_INPUT", Step: "VALIDATE_AUTHORITY_STATE", Reason: "UNSCOPED_AUTHORITY_STATE",
 			Counterexample: "claimed state is not one of the four evidence-backed owner states: " + observation.ClaimedState,
-			CellID: spec.ID,
+			CellID:         spec.ID,
 		})
 		return DecisionRefuted, []EvidenceRecord{}, false, true
 	}
@@ -143,7 +143,7 @@ func classifyCell(spec CellSpec, observation CellObservation, base, root string,
 		appendRefutation(report, Refutation{
 			Stage: "BOUNDARY_INPUT", Step: "CLASSIFY_SEMANTIC_AUTHORITY", Reason: "SEMANTIC_AUTHORITY_INFERRED_FROM_FILE_SHAPE",
 			Counterexample: "file extension or line count was used without an explicit semantic marker",
-			CellID: spec.ID,
+			CellID:         spec.ID,
 		})
 		return DecisionRefuted, []EvidenceRecord{}, false, true
 	}
@@ -151,7 +151,7 @@ func classifyCell(spec CellSpec, observation CellObservation, base, root string,
 		appendRefutation(report, Refutation{
 			Stage: "BOUNDARY_INPUT", Step: "CLASSIFY_SEMANTIC_AUTHORITY", Reason: "NON_EXPLICIT_AUTHORITY_METHOD",
 			Counterexample: "authority method must be EXPLICIT_SEMANTIC_MARKER",
-			CellID: spec.ID,
+			CellID:         spec.ID,
 		})
 		return DecisionRefuted, []EvidenceRecord{}, false, true
 	}
@@ -189,7 +189,7 @@ func classifyCell(spec CellSpec, observation CellObservation, base, root string,
 		appendRefutation(report, Refutation{
 			Stage: "BOUNDARY_INPUT", Step: "COMPARE_AUTHORITY_EVIDENCE", Reason: "MULTIPLE_SEMANTIC_AUTHORITIES",
 			Counterexample: "evidence records declare different authority states for " + spec.ID,
-			CellID: spec.ID,
+			CellID:         spec.ID,
 		})
 	}
 	if unknown {
@@ -206,7 +206,7 @@ func classifyCell(spec CellSpec, observation CellObservation, base, root string,
 			appendRefutation(report, Refutation{
 				Stage: "BOUNDARY_INPUT", Step: "COMPARE_DECLARED_AUTHORITY", Reason: "AUTHORITY_MARKER_CONTRADICTION",
 				Counterexample: "claimed=" + observation.ClaimedState + " evidence=" + authority,
-				CellID: spec.ID,
+				CellID:         spec.ID,
 			})
 			return DecisionRefuted, records, false, true
 		}
@@ -372,14 +372,14 @@ func replayResult(first, second Report) ReplayResult {
 
 func projectionDigest(report Report) string {
 	projection := struct {
-		Decision        string       `json:"decision"`
-		AuthorityVector []CellResult `json:"authority_vector"`
-		ProofVector     []string     `json:"proof_vector"`
-		IndicatorVector []string     `json:"indicator_vector"`
-		FixedPoint      FixedPointResult `json:"fixed_point"`
-		Unknowns        []Unknown    `json:"unknowns"`
-		Refutations     []Refutation `json:"refutations"`
-		NextFrontier    []string     `json:"next_frontier"`
+		Decision        string            `json:"decision"`
+		AuthorityVector []CellResult      `json:"authority_vector"`
+		ProofVector     []string          `json:"proof_vector"`
+		IndicatorVector []string          `json:"indicator_vector"`
+		FixedPoint      FixedPointResult  `json:"fixed_point"`
+		Unknowns        []Unknown         `json:"unknowns"`
+		Refutations     []Refutation      `json:"refutations"`
+		NextFrontier    []string          `json:"next_frontier"`
 		FileDigests     map[string]string `json:"file_digests"`
 	}{report.Decision, report.AuthorityVector, report.ProofVector, report.IndicatorVector, report.FixedPoint, report.Unknowns, report.Refutations, report.NextFrontier, report.FileDigests}
 	data, _ := json.Marshal(projection)

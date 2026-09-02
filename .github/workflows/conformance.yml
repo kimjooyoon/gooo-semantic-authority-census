@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      BOUNDARY_OUTPUT: ${{ runner.temp }}/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout subject
         uses: actions/checkout@v5
@@ -54,12 +55,7 @@ jobs:
         run: test -z "$(gofmt -l .)"
 
       - name: Prepare caller-owned output
-        shell: bash
-        run: |
-          set -euo pipefail
-          output="$RUNNER_TEMP/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}"
-          mkdir -p "$output"
-          echo "BOUNDARY_OUTPUT=$output" >> "$GITHUB_ENV"
+        run: mkdir -p "$BOUNDARY_OUTPUT"
 
       - name: Run CI-only boundary conformance
         run: bash scripts/boundary-conformance.sh "$BOUNDARY_OUTPUT"

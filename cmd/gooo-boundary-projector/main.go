@@ -23,12 +23,12 @@ func main() {
 		fail(err.Error())
 	}
 	data, err := json.Marshal(map[string]any{
-		"schema": boundary.ReportSchema + "/receipt",
-		"scenario_id": report.ScenarioID,
-		"decision": report.Decision,
-		"authority_cells": len(report.AuthorityVector),
+		"schema":            boundary.ReportSchema + "/receipt",
+		"scenario_id":       report.ScenarioID,
+		"decision":          report.Decision,
+		"authority_cells":   len(report.AuthorityVector),
 		"repository_writes": report.Authority.RepositoryWrites,
-		"replay": report.Replay.State,
+		"replay":            report.Replay.State,
 	})
 	if err != nil {
 		fail(err.Error())

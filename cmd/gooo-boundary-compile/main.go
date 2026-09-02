@@ -21,10 +21,10 @@ func main() {
 		fail(err.Error())
 	}
 	data, err := json.Marshal(map[string]any{
-		"schema": boundary.PolicySchema + "/compile-receipt",
-		"policy_id": compiled.Policy.ID,
-		"authority_cells": len(compiled.Policy.Cells),
-		"source_digest": compiled.SourceDigest,
+		"schema":            boundary.PolicySchema + "/compile-receipt",
+		"policy_id":         compiled.Policy.ID,
+		"authority_cells":   len(compiled.Policy.Cells),
+		"source_digest":     compiled.SourceDigest,
 		"repository_writes": 0,
 	})
 	if err != nil {
