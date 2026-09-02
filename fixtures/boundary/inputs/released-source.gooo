@@ -1,0 +1,5 @@
+# Released Gooo source evidence; authority is explicit semantic content.
+boundary cell=LANGUAGE_GRAMMAR authority=GOOO_OWNED semantic_role=grammar_rules evidence_kind=GOOO_SOURCE
+boundary cell=BOUNDARY_ONTOLOGY authority=GOOO_OWNED semantic_role=boundary_ontology evidence_kind=GOOO_SOURCE
+boundary cell=CONFORMANCE_POLICY authority=GOOO_OWNED semantic_role=conformance_policy evidence_kind=GOOO_SOURCE
+fixed_point claim=BOUNDARY_AUTHORITY_PROJECTION state=FIXED_POINT evidence_kind=GOOO_SOURCE

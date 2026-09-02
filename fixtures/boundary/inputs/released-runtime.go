@@ -1,0 +1,5 @@
+package runtime
+
+// boundary cell=EVALUATOR_RULES authority=HANDWRITTEN_RUNTIME semantic_role=evaluator_rules evidence_kind=HANDWRITTEN_GO
+// boundary cell=GENERATOR_RULES authority=HANDWRITTEN_RUNTIME semantic_role=generator_rules evidence_kind=HANDWRITTEN_GO
+// boundary cell=GENERATED_GO_LINEAGE authority=GENERATED_FROM_GOOO semantic_role=generated_go_lineage evidence_kind=GENERATED_GO

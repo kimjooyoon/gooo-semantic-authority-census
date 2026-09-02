@@ -1,4 +1,4 @@
-name: Semantic authority census
+name: Gooo self-description boundary CI
 
 on:
   pull_request:
@@ -10,29 +10,93 @@ permissions:
   contents: read
 
 jobs:
-  census:
+  boundary:
+    name: Go 1.27 read-only boundary projection
     runs-on: ubuntu-latest
+    env:
+      SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v6
+      - name: Checkout subject
+        uses: actions/checkout@v5
         with:
-          go-version: 1.27.0
+          ref: ${{ env.SUBJECT_SHA }}
+          fetch-depth: 0
+
+      - name: Set up Go 1.27
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.27.0'
           cache: false
-      - name: Check formatting
+
+      - name: Restore Go module and build cache
+        id: go-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-1.27-${{ hashFiles('**/go.mod', '**/go.sum') }}-${{ env.SUBJECT_SHA }}
+          restore-keys: |
+            ${{ runner.os }}-go-1.27-${{ hashFiles('**/go.mod', '**/go.sum') }}-
+
+      - name: Record cache observation
+        run: echo "GO_MODULE_CACHE_STATUS=${{ steps.go-cache.outputs.cache-hit }}" >> "$GITHUB_ENV"
+
+      - name: Verify declared toolchain and shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(go env GOVERSION)" = "go1.27.0"
+          bash -n scripts/*.sh
+
+      - name: Check Go formatting
+        shell: bash
         run: test -z "$(gofmt -l .)"
-      - name: Run CI-only conformance
-        run: bash scripts/conformance.sh "$RUNNER_TEMP/gooo-semantic-authority-census"
-      - name: Publish human summary
+
+      - name: Prepare caller-owned output
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$RUNNER_TEMP/gooo-semantic-authority-census-${{ github.run_id }}-${{ github.run_attempt }}"
+          mkdir -p "$output"
+          echo "BOUNDARY_OUTPUT=$output" >> "$GITHUB_ENV"
+
+      - name: Run CI-only boundary conformance
+        run: bash scripts/boundary-conformance.sh "$BOUNDARY_OUTPUT"
+
+      - name: Run read-only static check
+        if: always()
+        run: go vet ./...
+
+      - name: Preserve incomplete run metadata
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f "$BOUNDARY_OUTPUT/ci-evidence.json" ]]; then
+            jq -n \
+              --arg schema 'gooo/self-description-boundary/failed-run/v1' \
+              --arg repository "$GITHUB_REPOSITORY" \
+              --arg commit "$SUBJECT_SHA" \
+              --arg run_id "$GITHUB_RUN_ID" \
+              --arg attempt "$GITHUB_RUN_ATTEMPT" \
+              '{schema:$schema,repository:$repository,commit:$commit,run_id:$run_id,attempt:$attempt,decision:"UNKNOWN",measurement_state:"UNKNOWN",incidents:[{stage:"CI",step:"RUN_BOUNDARY_CONFORMANCE",reason:"CONFORMANCE_DID_NOT_COMPLETE",unknown_class:"DIRECT_MISSING",next_operation:"INSPECT_UPLOADED_PARTIAL_ARTIFACT",blocked_by:["CI_RUN"]}],authority:{repository_write_authority:0},claims:{aggregate_score:"NOT_EMITTED",percentage:"NOT_EMITTED",self_hosting:"NOT_EMITTED",improvement:"NOT_EMITTED"}}' > "$BOUNDARY_OUTPUT/failed-run.json"
+          fi
+
+      - name: Publish boundary summary
         if: always()
         run: |
-          if [ -f "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" ]; then
-            cat "$RUNNER_TEMP/gooo-semantic-authority-census/report.md" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f "$BOUNDARY_OUTPUT/report.md" ]]; then
+            cat "$BOUNDARY_OUTPUT/report.md" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Conformance did not reach report generation." >> "$GITHUB_STEP_SUMMARY"
+            echo "Conformance did not reach report generation; partial evidence was retained." >> "$GITHUB_STEP_SUMMARY"
           fi
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload immutable run-scoped evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: semantic-authority-census
-          path: ${{ runner.temp }}/gooo-semantic-authority-census
-          if-no-files-found: warn
+          name: gooo-semantic-authority-census-${{ env.SUBJECT_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.BOUNDARY_OUTPUT }}
+          if-no-files-found: error
+          retention-days: 90

@@ -1,0 +1,8 @@
+{
+  "schema":"gooo/self-description-boundary/input/v1",
+  "scenario_id":"refuted-write-escalation",
+  "expected_decision":"REFUTED",
+  "release":{"id":"gooo-released-source-v1","source_revision":"released-source-v1","source_release":"v0.1.1","toolchain":"go1.27.0","input_paths":[]},
+  "authority":{"repository_writes":1,"local_test_executions":0,"infrastructure_mutations":0,"provider_install_attempts":0,"network_mutation_attempts":0},
+  "cells":[]
+}

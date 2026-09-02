@@ -1,0 +1,11 @@
+{
+  "schema":"gooo/self-description-boundary/input/v1",
+  "scenario_id":"unknown-missing-marker",
+  "expected_decision":"UNKNOWN",
+  "release":{"id":"gooo-released-source-v1","source_revision":"released-source-v1","source_release":"v0.1.1","toolchain":"go1.27.0","input_paths":["../inputs/released-source.gooo","../inputs/released-semantic-graph.json","../inputs/released-runtime.go","../inputs/released-toolchain.json"]},
+  "authority":{"repository_writes":0,"local_test_executions":0,"infrastructure_mutations":0,"provider_install_attempts":0,"network_mutation_attempts":0},
+  "fixed_point":{"role":"fixed_point","kind":"GOOO_SOURCE","path":"../inputs/released-source.gooo","start_line":5,"end_line":5,"marker":"state=FIXED_POINT"},
+  "cells":[
+    {"cell_id":"LANGUAGE_GRAMMAR","claimed_state":"GOOO_OWNED","method":"EXPLICIT_SEMANTIC_MARKER","evidence":[{"role":"authority","kind":"GOOO_SOURCE","path":"../inputs/released-source.gooo","start_line":2,"end_line":2,"marker":"marker-that-is-not-present"}]}
+  ]
+}

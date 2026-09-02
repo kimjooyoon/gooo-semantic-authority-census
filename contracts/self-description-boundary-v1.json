@@ -1,0 +1,20 @@
+{
+  "schema":"gooo/self-description-boundary/contract/v1",
+  "policy_id":"self-description-boundary-v1",
+  "release":"gooo-released-source-v1",
+  "authority_states":["GOOO_OWNED","GENERATED_FROM_GOOO","HANDWRITTEN_RUNTIME","BOOTSTRAP_EXTERNAL","UNKNOWN","REFUTED"],
+  "precedence":["REFUTED","UNKNOWN","CLOSED"],
+  "unknown_fields":["stage","step","reason","unknown_class","next_operation","blocked_by"],
+  "fixed_point_rule":"EXPLICIT_ONLY",
+  "output_authority":"READ_ONLY",
+  "authority_cells":[
+    {"id":"LANGUAGE_GRAMMAR","expected_state":"GOOO_OWNED","evidence_kind":"GOOO_SOURCE","semantic_role":"grammar_rules","activity":"LanguageGrammar","proof":"FOUNDATION","indicator":"DRIVER"},
+    {"id":"BOUNDARY_ONTOLOGY","expected_state":"GOOO_OWNED","evidence_kind":"GOOO_SOURCE","semantic_role":"boundary_ontology","activity":"BoundaryOntology","proof":"FOUNDATION","indicator":"DRIVER"},
+    {"id":"SEMANTIC_IR_SCHEMA","expected_state":"GOOO_OWNED","evidence_kind":"SEMANTIC_GRAPH","semantic_role":"ir_schema","activity":"SemanticIRSchema","proof":"FOUNDATION","indicator":"OUTCOME"},
+    {"id":"EVALUATOR_RULES","expected_state":"HANDWRITTEN_RUNTIME","evidence_kind":"HANDWRITTEN_GO","semantic_role":"evaluator_rules","activity":"EvaluatorRules","proof":"COHERENCE","indicator":"OUTCOME"},
+    {"id":"GENERATOR_RULES","expected_state":"HANDWRITTEN_RUNTIME","evidence_kind":"HANDWRITTEN_GO","semantic_role":"generator_rules","activity":"GeneratorRules","proof":"COHERENCE","indicator":"OUTCOME"},
+    {"id":"CONFORMANCE_POLICY","expected_state":"GOOO_OWNED","evidence_kind":"GOOO_SOURCE","semantic_role":"conformance_policy","activity":"ConformancePolicy","proof":"COHERENCE","indicator":"GUARDRAIL"},
+    {"id":"TOOLCHAIN_METADATA","expected_state":"BOOTSTRAP_EXTERNAL","evidence_kind":"TOOLCHAIN_METADATA","semantic_role":"toolchain_metadata","activity":"ToolchainMetadata","proof":"REGRESSION","indicator":"DRIVER"},
+    {"id":"GENERATED_GO_LINEAGE","expected_state":"GENERATED_FROM_GOOO","evidence_kind":"GENERATED_GO","semantic_role":"generated_go_lineage","activity":"GeneratedGoLineage","proof":"REGRESSION","indicator":"GUARDRAIL"}
+  ]
+}
