@@ -7,6 +7,20 @@ import (
 	"testing"
 )
 
+func TestParseSourceIgnoresInlineComments(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "source.gooo")
+	if err := os.WriteFile(path, []byte("activity A semantic=one # human annotation\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := parseSource(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := parsed.values["A"]; got != "semantic=one" {
+		t.Fatalf("semantic binding=%q want semantic=one", got)
+	}
+}
+
 func TestDecisionPrecedenceAndAuthority(t *testing.T) {
 	tests := []struct {
 		name    string

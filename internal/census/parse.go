@@ -42,6 +42,9 @@ func parseLineBindings(path, prefix string) (semanticMap, error) {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+		if prefix == "activity" {
+			line = strings.TrimSpace(strings.SplitN(line, "#", 2)[0])
+		}
 		if line == "" || (strings.HasPrefix(line, "#") && prefix == "activity") {
 			continue
 		}
