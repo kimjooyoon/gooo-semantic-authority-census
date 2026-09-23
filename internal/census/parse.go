@@ -60,13 +60,29 @@ func parseLineBindings(path, prefix string) (semanticMap, error) {
 			continue
 		}
 		id := fields[len(prefixFields)]
-		semantic := strings.Join(fields[len(prefixFields)+1:], " ")
+		semantic := tailAfterFields(line, len(prefixFields)+1)
 		if _, exists := out.values[id]; exists {
 			out.ambiguous[id] = true
 		}
 		out.values[id] = semantic
 	}
 	return out, scanner.Err()
+}
+
+func tailAfterFields(line string, fieldCount int) string {
+	index := 0
+	for consumed := 0; consumed < fieldCount; consumed++ {
+		for index < len(line) && (line[index] == ' ' || line[index] == '\t') {
+			index++
+		}
+		for index < len(line) && line[index] != ' ' && line[index] != '\t' {
+			index++
+		}
+	}
+	for index < len(line) && (line[index] == ' ' || line[index] == '\t') {
+		index++
+	}
+	return line[index:]
 }
 
 func parseIR(path string) (semanticMap, error) {
