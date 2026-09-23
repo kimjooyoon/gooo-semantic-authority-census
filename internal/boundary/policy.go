@@ -21,6 +21,16 @@ func ParsePolicy(path string) (Policy, error) {
 	defer file.Close()
 
 	policy := Policy{Schema: PolicySchema}
+	singleton := map[string]bool{
+		"boundary_policy":  true,
+		"release":          true,
+		"precedence":      true,
+		"unknown_fields":  true,
+		"authority_states": true,
+		"fixed_point_rule": true,
+		"output_authority": true,
+	}
+	seen := map[string]bool{}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -28,6 +38,12 @@ func ParsePolicy(path string) (Policy, error) {
 			continue
 		}
 		fields := strings.Fields(line)
+		if singleton[fields[0]] {
+			if seen[fields[0]] {
+				return Policy{}, fmt.Errorf("duplicate singleton boundary directive: %s", fields[0])
+			}
+			seen[fields[0]] = true
+		}
 		switch fields[0] {
 		case "boundary_policy":
 			if len(fields) != 2 {
