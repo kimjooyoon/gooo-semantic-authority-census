@@ -96,12 +96,13 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 	}
 
 	base := filepath.Dir(manifestPath)
+	fixtureRoot := filepath.Dir(base)
 	for _, obligation := range manifest.Obligations {
 		obligationUnknown := false
 		obligationRefuted := false
-		sourcePath, sourcePathErr := boundedManifestPath(base, obligation.SourcePath)
-		irPath, irPathErr := boundedManifestPath(base, obligation.IRPath)
-		generatedPath, generatedPathErr := boundedManifestPath(base, obligation.GeneratedPath)
+		sourcePath, sourcePathErr := boundedManifestPath(fixtureRoot, base, obligation.SourcePath)
+		irPath, irPathErr := boundedManifestPath(fixtureRoot, base, obligation.IRPath)
+		generatedPath, generatedPathErr := boundedManifestPath(fixtureRoot, base, obligation.GeneratedPath)
 
 		var source semanticMap
 		var sourceErr error
@@ -371,15 +372,15 @@ func unique(values []string) []string {
 	return out
 }
 
-func boundedManifestPath(base, relative string) (string, error) {
+func boundedManifestPath(root, base, relative string) (string, error) {
 	if filepath.IsAbs(relative) {
 		return "", errors.New("manifest path must be relative")
 	}
-	root, err := filepath.Abs(base)
+	root, err := filepath.Abs(root)
 	if err != nil {
 		return "", err
 	}
-	candidate, err := filepath.Abs(filepath.Join(root, relative))
+	candidate, err := filepath.Abs(filepath.Join(base, relative))
 	if err != nil {
 		return "", err
 	}
