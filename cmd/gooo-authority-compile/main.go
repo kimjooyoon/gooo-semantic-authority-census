@@ -76,6 +76,9 @@ func parse(path string) (policy, error) {
 	}
 	defer f.Close()
 	p := policy{Schema: "gooo/semantic-authority-policy/v1"}
+	seenPolicy := false
+	seenPrecedence := false
+	seenUnknownFields := false
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -85,20 +88,32 @@ func parse(path string) (policy, error) {
 		fields := strings.Fields(line)
 		switch fields[0] {
 		case "policy":
+			if seenPolicy {
+				return policy{}, fmt.Errorf("duplicate policy directive")
+			}
 			if len(fields) != 2 {
 				return policy{}, fmt.Errorf("invalid policy line: %s", line)
 			}
 			p.ID = fields[1]
+			seenPolicy = true
 		case "precedence":
+			if seenPrecedence {
+				return policy{}, fmt.Errorf("duplicate precedence directive")
+			}
 			if len(fields) != 4 {
 				return policy{}, fmt.Errorf("invalid precedence line: %s", line)
 			}
 			p.Precedence = append([]string(nil), fields[1:]...)
+			seenPrecedence = true
 		case "unknown_fields":
+			if seenUnknownFields {
+				return policy{}, fmt.Errorf("duplicate unknown_fields directive")
+			}
 			if len(fields) != 7 {
 				return policy{}, fmt.Errorf("invalid unknown_fields line: %s", line)
 			}
 			p.UnknownFields = append([]string(nil), fields[1:]...)
+			seenUnknownFields = true
 		case "cell":
 			if len(fields) != 5 {
 				return policy{}, fmt.Errorf("invalid cell line: %s", line)
