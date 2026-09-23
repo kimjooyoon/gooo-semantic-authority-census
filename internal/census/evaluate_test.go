@@ -75,6 +75,14 @@ func testPolicy() Policy {
 	}
 }
 
+func TestValidatePolicyRejectsDuplicateCellIDs(t *testing.T) {
+	policy := testPolicy()
+	policy.Cells[1].ID = policy.Cells[0].ID
+	if err := validatePolicy(policy); err == nil {
+		t.Fatal("expected duplicate policy cell id to be rejected")
+	}
+}
+
 func writeJSON(t *testing.T, path string, value any) {
 	t.Helper()
 	data, err := json.Marshal(value)

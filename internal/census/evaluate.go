@@ -229,6 +229,13 @@ func validatePolicy(p Policy) error {
 	if len(p.Cells) != 12 {
 		return fmt.Errorf("policy denominator is %d, expected 12", len(p.Cells))
 	}
+	seenIDs := map[string]bool{}
+	for _, cell := range p.Cells {
+		if cell.ID == "" || seenIDs[cell.ID] {
+			return fmt.Errorf("policy contains duplicate or empty cell id %q", cell.ID)
+		}
+		seenIDs[cell.ID] = true
+	}
 	if !reflect.DeepEqual(p.Precedence, []string{"REFUTED", "UNKNOWN", "CLOSED"}) {
 		return errors.New("policy precedence is not REFUTED > UNKNOWN > CLOSED")
 	}
