@@ -60,6 +60,18 @@ func TestDecisionPrecedenceAndAuthority(t *testing.T) {
 	}
 }
 
+func TestRejectsInvalidPolicyCellIdentity(t *testing.T) {
+	root := t.TempDir()
+	policyPath := filepath.Join(root, "policy.json")
+	policy := testPolicy()
+	policy.Cells[0].ID = "WRONG_CELL"
+	writeJSON(t, policyPath, policy)
+
+	if _, err := Evaluate(policyPath, filepath.Join(root, "missing-manifest.json")); err == nil {
+		t.Fatal("Evaluate accepted a policy with an invalid cell identity")
+	}
+}
+
 func testPolicy() Policy {
 	cells := []PolicyCell{
 		{ID: "LOAD_POLICY"}, {ID: "BIND_SOURCE"}, {ID: "BIND_SEMANTIC_IR"}, {ID: "BIND_GENERATED_GO"},
