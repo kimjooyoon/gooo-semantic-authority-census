@@ -226,8 +226,19 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 }
 
 func validatePolicy(p Policy) error {
-	if len(p.Cells) != 12 {
-		return fmt.Errorf("policy denominator is %d, expected 12", len(p.Cells))
+	expectedCellIDs := []string{
+		"LOAD_POLICY", "BIND_SOURCE", "BIND_SEMANTIC_IR", "BIND_GENERATED_GO",
+		"VERIFY_SOURCE_IR", "VERIFY_IR_GENERATED", "CLASSIFY_IMPLEMENTATION_AUTHORITY",
+		"VERIFY_INPUT_FRESHNESS", "PRESERVE_UNKNOWN_FRONTIER", "PRESERVE_REFUTATION",
+		"VERIFY_DETERMINISTIC_REPLAY", "PUBLISH_HUMAN_REPORT",
+	}
+	if len(p.Cells) != len(expectedCellIDs) {
+		return fmt.Errorf("policy denominator is %d, expected %d", len(p.Cells), len(expectedCellIDs))
+	}
+	for i, cell := range p.Cells {
+		if cell.ID != expectedCellIDs[i] {
+			return fmt.Errorf("policy cell %d is %q, expected %q", i, cell.ID, expectedCellIDs[i])
+		}
 	}
 	if !reflect.DeepEqual(p.Precedence, []string{"REFUTED", "UNKNOWN", "CLOSED"}) {
 		return errors.New("policy precedence is not REFUTED > UNKNOWN > CLOSED")
