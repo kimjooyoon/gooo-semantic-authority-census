@@ -2,10 +2,12 @@ package census
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -74,6 +76,9 @@ func parseIR(path string) (semanticMap, error) {
 	if err != nil {
 		return semanticMap{}, err
 	}
+	if err := validateUniqueJSONKeys(data); err != nil {
+		return semanticMap{}, fmt.Errorf("decode semantic IR: %w", err)
+	}
 	var doc irDocument
 	if err := json.Unmarshal(data, &doc); err != nil {
 		return semanticMap{}, err
@@ -89,6 +94,65 @@ func parseIR(path string) (semanticMap, error) {
 		out.values[activity.ID] = activity.Semantic
 	}
 	return out, nil
+}
+
+func validateUniqueJSONKeys(data []byte) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	if err := walkJSONValue(decoder); err != nil {
+		return err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return fmt.Errorf("trailing JSON value")
+		}
+		return err
+	}
+	return nil
+}
+
+func walkJSONValue(decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	delim, ok := token.(json.Delim)
+	if !ok {
+		return nil
+	}
+	switch delim {
+	case '{':
+		seen := map[string]bool{}
+		for decoder.More() {
+			keyToken, err := decoder.Token()
+			if err != nil {
+				return err
+			}
+			key, ok := keyToken.(string)
+			if !ok {
+				return fmt.Errorf("object key is not a string")
+			}
+			if seen[key] {
+				return fmt.Errorf("duplicate JSON object key %q", key)
+			}
+			seen[key] = true
+			if err := walkJSONValue(decoder); err != nil {
+				return err
+			}
+		}
+		_, err := decoder.Token()
+		return err
+	case '[':
+		for decoder.More() {
+			if err := walkJSONValue(decoder); err != nil {
+				return err
+			}
+		}
+		_, err := decoder.Token()
+		return err
+	default:
+		return fmt.Errorf("unexpected JSON delimiter %q", delim)
+	}
 }
 
 func fileDigest(path string) (string, error) {
