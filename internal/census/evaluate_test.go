@@ -75,6 +75,31 @@ func testPolicy() Policy {
 	}
 }
 
+func TestDuplicateObligationIdentityIsRejected(t *testing.T) {
+	root := t.TempDir()
+	policyPath := filepath.Join(root, "policy.json")
+	manifestPath := filepath.Join(root, "manifest.json")
+	sourcePath := filepath.Join(root, "source.gooo")
+	irPath := filepath.Join(root, "ir.json")
+	generatedPath := filepath.Join(root, "generated.txt")
+	writeJSON(t, policyPath, testPolicy())
+	if err := os.WriteFile(sourcePath, []byte("activity A semantic=one\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	writeJSON(t, irPath, irDocument{Activities: []irActivity{{ID: "A", Semantic: "semantic=one"}}})
+	if err := os.WriteFile(generatedPath, []byte("// gooo-binding A semantic=one\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	obligation := Obligation{ID: "A", SourcePath: "source.gooo", IRPath: "ir.json", GeneratedPath: "generated.txt", ImplementationKind: "GENERATED_FROM_GOOO"}
+	writeJSON(t, manifestPath, Manifest{
+		Schema: "gooo/semantic-authority-census-manifest/v1", ScenarioID: "duplicate", ExpectedDecision: "CLOSED", Freshness: "CURRENT",
+		Obligations: []Obligation{obligation, obligation},
+	})
+	if _, err := Evaluate(policyPath, manifestPath); err == nil {
+		t.Fatal("duplicate obligation id was accepted")
+	}
+}
+
 func writeJSON(t *testing.T, path string, value any) {
 	t.Helper()
 	data, err := json.Marshal(value)

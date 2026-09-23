@@ -49,6 +49,16 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 	if len(manifest.Obligations) == 0 {
 		return Report{}, errors.New("manifest has no obligations")
 	}
+	seenObligationIDs := make(map[string]struct{}, len(manifest.Obligations))
+	for _, obligation := range manifest.Obligations {
+		if obligation.ID == "" {
+			return Report{}, errors.New("manifest contains an empty obligation id")
+		}
+		if _, exists := seenObligationIDs[obligation.ID]; exists {
+			return Report{}, fmt.Errorf("manifest contains duplicate obligation id %q", obligation.ID)
+		}
+		seenObligationIDs[obligation.ID] = struct{}{}
+	}
 	report := Report{
 		Schema:           "gooo/semantic-authority-census-report/v1",
 		ScenarioID:       manifest.ScenarioID,
