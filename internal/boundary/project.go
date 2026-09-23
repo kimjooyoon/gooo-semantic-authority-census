@@ -75,6 +75,12 @@ func evaluateOnce(policyPath, manifestPath, repositoryRoot string) (Report, erro
 		Unknowns: []Unknown{}, Refutations: []Refutation{}, NextFrontier: []string{},
 		FileDigests: map[string]string{}, Authority: manifest.Authority, Release: manifest.Release,
 	}
+	if !releaseIdentityMatches(compiled.Policy.Release, manifest.Release) {
+		appendRefutation(&report, Refutation{
+			Stage: "BOUNDARY_INPUT", Step: "VERIFY_RELEASE_ID", Reason: "RELEASE_ID_CONTRADICTION",
+			Counterexample: "manifest release id does not match the declared policy release",
+		})
+	}
 	observations := map[string]CellObservation{}
 	duplicateObservation := map[string]bool{}
 	for _, observation := range manifest.Cells {
@@ -128,6 +134,10 @@ func evaluateOnce(policyPath, manifestPath, repositoryRoot string) (Report, erro
 	report.Decision = reduce(report)
 	report.NextFrontier = uniqueSorted(report.NextFrontier)
 	return report, nil
+}
+
+func releaseIdentityMatches(policyRelease string, release ReleaseMetadata) bool {
+	return policyRelease != "" && policyRelease == release.ID
 }
 
 func classifyCell(spec CellSpec, observation CellObservation, base, root string, report *Report) (string, []EvidenceRecord, bool, bool) {

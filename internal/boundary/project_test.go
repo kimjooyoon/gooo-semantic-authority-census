@@ -33,3 +33,15 @@ func TestUniqueSorted(t *testing.T) {
 		}
 	}
 }
+
+func TestReleaseIdentityMustMatchPolicy(t *testing.T) {
+	if !releaseIdentityMatches("gooo-released-source-v1", ReleaseMetadata{ID: "gooo-released-source-v1"}) {
+		t.Fatal("matching release identity was rejected")
+	}
+	if releaseIdentityMatches("gooo-released-source-v1", ReleaseMetadata{ID: "different-release"}) {
+		t.Fatal("different release identity was accepted")
+	}
+	if releaseIdentityMatches("gooo-released-source-v1", ReleaseMetadata{}) {
+		t.Fatal("empty release identity was accepted")
+	}
+}
