@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strings"
 )
 
 func Evaluate(policyPath, manifestPath string) (Report, error) {
@@ -98,33 +99,75 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 	for _, obligation := range manifest.Obligations {
 		obligationUnknown := false
 		obligationRefuted := false
-		sourcePath := filepath.Clean(filepath.Join(base, obligation.SourcePath))
-		irPath := filepath.Clean(filepath.Join(base, obligation.IRPath))
-		generatedPath := filepath.Clean(filepath.Join(base, obligation.GeneratedPath))
+		sourcePath, sourcePathErr := boundedManifestPath(base, obligation.SourcePath)
+		irPath, irPathErr := boundedManifestPath(base, obligation.IRPath)
+		generatedPath, generatedPathErr := boundedManifestPath(base, obligation.GeneratedPath)
 
-		source, sourceErr := parseSource(sourcePath)
-		if sourceErr != nil {
+		var source semanticMap
+		var sourceErr error
+		if sourcePathErr != nil {
+			sourceErr = sourcePathErr
+			obligationUnknown = true
+			appendUnknown(&report, "BIND_SOURCE", Unknown{
+				Stage: "SOURCE_BINDING", Step: "CONSTRAIN_MANIFEST_PATH", Reason: "SOURCE_PATH_ESCAPES_MANIFEST_ROOT",
+				UnknownClass: "OUTSIDE_MANIFEST_ROOT", NextOperation: "PIN_MANIFEST_RELATIVE_PATH",
+				BlockedBy: []string{"SOURCE_PATH:" + obligation.ID}, ObligationID: obligation.ID,
+			})
+		} else {
+			source, sourceErr = parseSource(sourcePath)
+		}
+		if sourceErr != nil && sourcePathErr == nil {
 			obligationUnknown = true
 			appendUnknown(&report, "BIND_SOURCE", missingUnknown("SOURCE", "READ_GOOO_SOURCE", "SOURCE_FILE_MISSING", "IMPORT_GOOO_SOURCE", obligation.ID))
 		} else {
-			sourceFiles[obligation.SourcePath] = true
-			recordDigest(&report, obligation.SourcePath, sourcePath)
+			if sourcePathErr == nil {
+				sourceFiles[obligation.SourcePath] = true
+				recordDigest(&report, obligation.SourcePath, sourcePath)
+			}
 		}
-		ir, irErr := parseIR(irPath)
-		if irErr != nil {
+		var ir semanticMap
+		var irErr error
+		if irPathErr != nil {
+			irErr = irPathErr
+			obligationUnknown = true
+			appendUnknown(&report, "BIND_SEMANTIC_IR", Unknown{
+				Stage: "IR_BINDING", Step: "CONSTRAIN_MANIFEST_PATH", Reason: "IR_PATH_ESCAPES_MANIFEST_ROOT",
+				UnknownClass: "OUTSIDE_MANIFEST_ROOT", NextOperation: "PIN_MANIFEST_RELATIVE_PATH",
+				BlockedBy: []string{"IR_PATH:" + obligation.ID}, ObligationID: obligation.ID,
+			})
+		} else {
+			ir, irErr = parseIR(irPath)
+		}
+		if irErr != nil && irPathErr == nil {
 			obligationUnknown = true
 			appendUnknown(&report, "BIND_SEMANTIC_IR", missingUnknown("SEMANTIC_IR", "READ_SEMANTIC_IR", "IR_FILE_MISSING_OR_MALFORMED", "REGENERATE_SEMANTIC_IR", obligation.ID))
 		} else {
-			irFiles[obligation.IRPath] = true
-			recordDigest(&report, obligation.IRPath, irPath)
+			if irPathErr == nil {
+				irFiles[obligation.IRPath] = true
+				recordDigest(&report, obligation.IRPath, irPath)
+			}
 		}
-		generated, generatedErr := parseGenerated(generatedPath)
-		if generatedErr != nil {
+		var generated semanticMap
+		var generatedErr error
+		if generatedPathErr != nil {
+			generatedErr = generatedPathErr
+			obligationUnknown = true
+			appendUnknown(&report, "BIND_GENERATED_GO", Unknown{
+				Stage: "GENERATED_BINDING", Step: "CONSTRAIN_MANIFEST_PATH", Reason: "GENERATED_PATH_ESCAPES_MANIFEST_ROOT",
+				UnknownClass: "OUTSIDE_MANIFEST_ROOT", NextOperation: "PIN_MANIFEST_RELATIVE_PATH",
+				BlockedBy: []string{"GENERATED_PATH:" + obligation.ID}, ObligationID: obligation.ID,
+			})
+		} else {
+			generated, generatedErr = parseGenerated(generatedPath)
+		}
+		if generatedErr != nil && generatedPathErr == nil {
 			obligationUnknown = true
 			appendUnknown(&report, "BIND_GENERATED_GO", missingUnknown("GENERATED_BINDING", "READ_GENERATED_GO", "GENERATED_FILE_MISSING", "GENERATE_FROM_GOOO", obligation.ID))
 		} else {
-			generatedFiles[obligation.GeneratedPath] = true
-			recordDigest(&report, obligation.GeneratedPath, generatedPath)
+			if generatedPathErr == nil {
+				generatedFiles[obligation.GeneratedPath] = true
+				recordDigest(&report, obligation.GeneratedPath, generatedPath)
+			}
 		}
 
 		var sourceSemantic, irSemantic, generatedSemantic string
@@ -326,4 +369,26 @@ func unique(values []string) []string {
 		}
 	}
 	return out
+}
+
+func boundedManifestPath(base, relative string) (string, error) {
+	if filepath.IsAbs(relative) {
+		return "", errors.New("manifest path must be relative")
+	}
+	root, err := filepath.Abs(base)
+	if err != nil {
+		return "", err
+	}
+	candidate, err := filepath.Abs(filepath.Join(root, relative))
+	if err != nil {
+		return "", err
+	}
+	rel, err := filepath.Rel(root, candidate)
+	if err != nil {
+		return "", err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return "", errors.New("manifest path escapes manifest root")
+	}
+	return candidate, nil
 }
