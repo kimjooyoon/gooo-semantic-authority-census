@@ -83,6 +83,14 @@ func TestValidatePolicyRejectsDuplicateCellIDs(t *testing.T) {
 	}
 }
 
+func TestValidatePolicyRejectsUnknownCellIDs(t *testing.T) {
+	policy := testPolicy()
+	policy.Cells[0].ID = "UNDECLARED_CELL"
+	if err := validatePolicy(policy); err == nil {
+		t.Fatal("expected unknown policy cell id to be rejected")
+	}
+}
+
 func writeJSON(t *testing.T, path string, value any) {
 	t.Helper()
 	data, err := json.Marshal(value)

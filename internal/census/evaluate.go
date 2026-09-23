@@ -229,12 +229,26 @@ func validatePolicy(p Policy) error {
 	if len(p.Cells) != 12 {
 		return fmt.Errorf("policy denominator is %d, expected 12", len(p.Cells))
 	}
+	expectedIDs := map[string]bool{
+		"LOAD_POLICY": true, "BIND_SOURCE": true, "BIND_SEMANTIC_IR": true, "BIND_GENERATED_GO": true,
+		"VERIFY_SOURCE_IR": true, "VERIFY_IR_GENERATED": true, "CLASSIFY_IMPLEMENTATION_AUTHORITY": true,
+		"VERIFY_INPUT_FRESHNESS": true, "PRESERVE_UNKNOWN_FRONTIER": true, "PRESERVE_REFUTATION": true,
+		"VERIFY_DETERMINISTIC_REPLAY": true, "PUBLISH_HUMAN_REPORT": true,
+	}
 	seenIDs := map[string]bool{}
 	for _, cell := range p.Cells {
 		if cell.ID == "" || seenIDs[cell.ID] {
 			return fmt.Errorf("policy contains duplicate or empty cell id %q", cell.ID)
 		}
+		if !expectedIDs[cell.ID] {
+			return fmt.Errorf("policy contains unknown cell id %q", cell.ID)
+		}
 		seenIDs[cell.ID] = true
+	}
+	for id := range expectedIDs {
+		if !seenIDs[id] {
+			return fmt.Errorf("policy is missing required cell id %q", id)
+		}
 	}
 	if !reflect.DeepEqual(p.Precedence, []string{"REFUTED", "UNKNOWN", "CLOSED"}) {
 		return errors.New("policy precedence is not REFUTED > UNKNOWN > CLOSED")
