@@ -98,9 +98,18 @@ func evaluateOnce(policyPath, manifestPath string) (Report, error) {
 	for _, obligation := range manifest.Obligations {
 		obligationUnknown := false
 		obligationRefuted := false
-		sourcePath := filepath.Clean(filepath.Join(base, obligation.SourcePath))
-		irPath := filepath.Clean(filepath.Join(base, obligation.IRPath))
-		generatedPath := filepath.Clean(filepath.Join(base, obligation.GeneratedPath))
+		sourcePath, pathErr := containedPath(base, obligation.SourcePath)
+		if pathErr != nil {
+			return Report{}, fmt.Errorf("obligation %q source path: %w", obligation.ID, pathErr)
+		}
+		irPath, pathErr := containedPath(base, obligation.IRPath)
+		if pathErr != nil {
+			return Report{}, fmt.Errorf("obligation %q IR path: %w", obligation.ID, pathErr)
+		}
+		generatedPath, pathErr := containedPath(base, obligation.GeneratedPath)
+		if pathErr != nil {
+			return Report{}, fmt.Errorf("obligation %q generated path: %w", obligation.ID, pathErr)
+		}
 
 		source, sourceErr := parseSource(sourcePath)
 		if sourceErr != nil {
