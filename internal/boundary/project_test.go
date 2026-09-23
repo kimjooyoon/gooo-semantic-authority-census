@@ -3,14 +3,23 @@ package boundary
 import "testing"
 
 func TestAuthorityStateVocabularyIsFixed(t *testing.T) {
-	if len(AuthorityStates) != 6 {
-		t.Fatalf("authority states=%d want 6", len(AuthorityStates))
+	states := AuthorityStates()
+	if len(states) != 6 {
+		t.Fatalf("authority states=%d want 6", len(states))
 	}
-	if !OwnedAuthorityStates["GOOO_OWNED"] || !OwnedAuthorityStates["BOOTSTRAP_EXTERNAL"] {
+	if !IsOwnedAuthorityState("GOOO_OWNED") || !IsOwnedAuthorityState("BOOTSTRAP_EXTERNAL") {
 		t.Fatal("owner states were not preserved")
 	}
-	if OwnedAuthorityStates[DecisionUnknown] || OwnedAuthorityStates[DecisionRefuted] {
+	if IsOwnedAuthorityState(DecisionUnknown) || IsOwnedAuthorityState(DecisionRefuted) {
 		t.Fatal("UNKNOWN and REFUTED must not be caller-asserted owner states")
+	}
+}
+
+func TestAuthorityStateVocabularyCannotBeMutatedThroughSnapshot(t *testing.T) {
+	states := AuthorityStates()
+	states[0] = DecisionRefuted
+	if AuthorityStates()[0] == DecisionRefuted {
+		t.Fatal("authority vocabulary exposed mutable storage")
 	}
 }
 

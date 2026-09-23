@@ -10,7 +10,7 @@ const (
 	FixedPoint      = "FIXED_POINT"
 )
 
-var AuthorityStates = []string{
+var authorityStates = [...]string{
 	"GOOO_OWNED",
 	"GENERATED_FROM_GOOO",
 	"HANDWRITTEN_RUNTIME",
@@ -18,12 +18,17 @@ var AuthorityStates = []string{
 	"UNKNOWN",
 	"REFUTED",
 }
+func AuthorityStates() []string {
+	return append([]string(nil), authorityStates[:]...)
+}
 
-var OwnedAuthorityStates = map[string]bool{
-	"GOOO_OWNED":          true,
-	"GENERATED_FROM_GOOO": true,
-	"HANDWRITTEN_RUNTIME": true,
-	"BOOTSTRAP_EXTERNAL":  true,
+func IsOwnedAuthorityState(state string) bool {
+	switch state {
+	case "GOOO_OWNED", "GENERATED_FROM_GOOO", "HANDWRITTEN_RUNTIME", "BOOTSTRAP_EXTERNAL":
+		return true
+	default:
+		return false
+	}
 }
 
 type Policy struct {

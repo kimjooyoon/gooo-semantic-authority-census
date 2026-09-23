@@ -96,7 +96,7 @@ func ValidatePolicy(policy Policy) error {
 	if strings.Join(policy.UnknownFields, ",") != "stage,step,reason,unknown_class,next_operation,blocked_by" {
 		return errors.New("UNKNOWN fields must be the fixed six-field schema")
 	}
-	if strings.Join(policy.AuthorityStates, ",") != strings.Join(AuthorityStates, ",") {
+	if strings.Join(policy.AuthorityStates, ",") != strings.Join(AuthorityStates(), ",") {
 		return errors.New("authority states are not the fixed six-state vocabulary")
 	}
 	if policy.FixedPointRule != "EXPLICIT_ONLY" {
@@ -117,7 +117,7 @@ func ValidatePolicy(policy Policy) error {
 		if cell.Activity == "" || activities[cell.Activity] {
 			return fmt.Errorf("duplicate or empty meta activity %q", cell.Activity)
 		}
-		if !OwnedAuthorityStates[cell.ExpectedState] {
+		if !IsOwnedAuthorityState(cell.ExpectedState) {
 			return fmt.Errorf("authority cell %s has invalid expected state %q", cell.ID, cell.ExpectedState)
 		}
 		if cell.EvidenceKind == "" || cell.SemanticRole == "" || cell.Proof == "" || cell.Indicator == "" {

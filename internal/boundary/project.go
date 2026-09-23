@@ -131,7 +131,7 @@ func evaluateOnce(policyPath, manifestPath, repositoryRoot string) (Report, erro
 }
 
 func classifyCell(spec CellSpec, observation CellObservation, base, root string, report *Report) (string, []EvidenceRecord, bool, bool) {
-	if !OwnedAuthorityStates[observation.ClaimedState] {
+	if !IsOwnedAuthorityState(observation.ClaimedState) {
 		appendRefutation(report, Refutation{
 			Stage: "BOUNDARY_INPUT", Step: "VALIDATE_AUTHORITY_STATE", Reason: "UNSCOPED_AUTHORITY_STATE",
 			Counterexample: "claimed state is not one of the four evidence-backed owner states: " + observation.ClaimedState,
@@ -454,7 +454,7 @@ func splitLines(data []byte) []string {
 
 func authorityFromText(text string) string {
 	found := []string{}
-	for _, state := range AuthorityStates {
+	for _, state := range AuthorityStates() {
 		if strings.Contains(text, "authority="+state) || strings.Contains(text, `"authority":"`+state+`"`) || strings.Contains(text, "authority "+state) {
 			found = append(found, state)
 		}
