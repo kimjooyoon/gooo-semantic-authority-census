@@ -40,7 +40,9 @@ func parseLineBindings(path, prefix string) (semanticMap, error) {
 	defer f.Close()
 	out := semanticMap{values: map[string]string{}, ambiguous: map[string]bool{}}
 	scanner := bufio.NewScanner(f)
+	lineNo := 0
 	for scanner.Scan() {
+		lineNo++
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" || (strings.HasPrefix(line, "#") && prefix == "activity") {
 			continue
@@ -48,6 +50,18 @@ func parseLineBindings(path, prefix string) (semanticMap, error) {
 		fields := strings.Fields(line)
 		prefixFields := strings.Fields(prefix)
 		if len(fields) < len(prefixFields)+2 {
+			if len(fields) >= len(prefixFields) {
+				matchesPrefix := true
+				for i := range prefixFields {
+					if fields[i] != prefixFields[i] {
+						matchesPrefix = false
+						break
+					}
+				}
+				if matchesPrefix {
+					return semanticMap{}, fmt.Errorf("malformed %s declaration at line %d", prefix, lineNo)
+				}
+			}
 			continue
 		}
 		match := true
