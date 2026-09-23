@@ -18,6 +18,7 @@ var authorityStates = [...]string{
 	"UNKNOWN",
 	"REFUTED",
 }
+
 func AuthorityStates() []string {
 	return append([]string(nil), authorityStates[:]...)
 }
